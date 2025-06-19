@@ -576,7 +576,7 @@
         <div class="api-key-card">
             <h3>Getting an API Key</h3>
             <p>API keys are generated through the bot's commands:</p>
-            <pre><code>/apikey generate</code></pre>
+            <pre><code>/auth generate-key</code></pre>
             <p>Each key is tied to a specific Discord server and grants access to that server's resources.</p>
         </div>
     </section>
@@ -869,7 +869,7 @@ curl -X POST -H "Content-Type: application/json" \
         <ul>
             <li>Always use HTTPS in production environments</li>
             <li>Never expose API keys in client-side code</li>
-            <li>Rotate API keys periodically using the <code>/apikey</code> command</li>
+            <li>Rotate API keys periodically using the <code>/auth generate-key</code> command</li>
             <li>Store API keys securely using environment variables</li>
         </ul>
     </section>

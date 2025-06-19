@@ -22,21 +22,6 @@
                 document.getElementById('theme-toggle').innerHTML = icon;
             });
             
-            // Format the date to be more readable
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                if (isNaN(date)) return dateString; // Return original if invalid
-                
-                const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                return date.toLocaleDateString('en-US', options);
-            }
-            
-            // Apply formatted date
-            const dateElements = document.querySelectorAll('.formatted-date');
-            dateElements.forEach(el => {
-                el.textContent = formatDate(el.textContent);
-            });
-            
             // Endpoint navigation
             document.querySelectorAll('.endpoint-link').forEach(link => {
                 link.addEventListener('click', (e) => {
@@ -46,6 +31,28 @@
                         behavior: 'smooth',
                         block: 'start'
                     });
+                });
+            });
+            
+            // Tab functionality
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    document.querySelectorAll('.tab').forEach(t => {
+                        t.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    tab.classList.add('active');
+                    
+                    // Hide all tab content
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    
+                    // Show target tab content
+                    const targetId = tab.getAttribute('data-tab');
+                    document.getElementById(targetId).classList.add('active');
                 });
             });
         });
@@ -473,6 +480,24 @@
             margin-right: 8px;
         }
         
+        .api-key-card {
+            background: linear-gradient(135deg, #2c2f33, #23272A);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+        }
+        
+        .api-key-card h3 {
+            color: white;
+            margin-bottom: 15px;
+        }
+        
+        .api-key-card pre {
+            background: rgba(0,0,0,0.3);
+            color: #7ec699;
+        }
+        
         @media (max-width: 768px) {
             body {
                 padding: 15px;
@@ -526,7 +551,7 @@
                 <p>Programmatic access to bot functionality and server data</p>
             </div>
             <div class="last-updated">
-                <span class="formatted-date">2025-06-20</span>
+                <span>Last updated: June 20, 2025</span>
             </div>
         </div>
     </header>
@@ -538,7 +563,7 @@
         <div class="section-container">
             <div>
                 <h3>API Base URL</h3>
-                <pre><code>http://your-bot-ip:20166</code></pre>
+                <pre><code>http://bot-ip:20166</code></pre>
             </div>
             
             <div>
@@ -547,11 +572,17 @@
                 <pre><code>Authorization: Bearer YOUR_API_KEY</code></pre>
             </div>
         </div>
+        
+        <div class="api-key-card">
+            <h3>Getting an API Key</h3>
+            <p>API keys are generated through the bot's commands:</p>
+            <pre><code>/apikey generate</code></pre>
+            <p>Each key is tied to a specific Discord server and grants access to that server's resources.</p>
+        </div>
     </section>
     
-    <section id="authentication">
-        <h2>Authentication</h2>
-        <p>API keys are managed through the bot's <code>/apikey</code> command and grant access to resources for a specific Discord server.</p>
+    <section id="endpoints">
+        <h2>API Endpoints</h2>
         
         <div class="endpoint-card">
             <div class="endpoint-header">
@@ -560,7 +591,7 @@
             </div>
             
             <div class="endpoint-description">
-                <p>Returns basic service information to verify authentication.</p>
+                <p>Verifies API key authentication and returns basic service information.</p>
             </div>
             
             <div class="endpoint-response">
@@ -573,118 +604,113 @@
   <span class="json-key">"guildId"</span>: <span class="json-string">"123456789012345678"</span>
 }</code></pre>
                 </div>
+                
+                <h4>Response Fields</h4>
+                <table class="endpoint-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>status</td>
+                            <td>string</td>
+                            <td>Operation status ("success")</td>
+                        </tr>
+                        <tr>
+                            <td>message</td>
+                            <td>string</td>
+                            <td>Confirmation message</td>
+                        </tr>
+                        <tr>
+                            <td>service</td>
+                            <td>string</td>
+                            <td>Name of the service associated with the API key</td>
+                        </tr>
+                        <tr>
+                            <td>guildId</td>
+                            <td>string</td>
+                            <td>Discord server ID associated with the API key</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
-    </section>
-    
-    <section id="endpoints">
-        <h2>API Endpoints</h2>
         
-        <div class="tabs">
-            <div class="tab active" data-tab="secure-data">Secure Data</div>
-            <div class="tab" data-tab="bot-stats">Bot Stats</div>
-            <div class="tab" data-tab="verify-member">Verify Member</div>
-        </div>
-        
-        <div id="secure-data" class="tab-content active">
-            <div class="endpoint-card">
-                <div class="endpoint-header">
-                    <div class="endpoint-method method-get">GET</div>
-                    <div class="endpoint-url">/api/secure-data</div>
-                </div>
-                
-                <div class="endpoint-description">
-                    <p>Returns basic service information to verify authentication.</p>
-                </div>
-                
-                <div class="endpoint-response">
-                    <div class="response-title">Response</div>
-                    <div class="json-block">
-                        <pre><code>{
-  <span class="json-key">"status"</span>: <span class="json-string">"success"</span>,
-  <span class="json-key">"message"</span>: <span class="json-string">"Access granted to protected resource"</span>,
-  <span class="json-key">"service"</span>: <span class="json-string">"Your Service Name"</span>,
-  <span class="json-key">"guildId"</span>: <span class="json-string">"123456789012345678"</span>
-}</code></pre>
-                    </div>
-                </div>
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div class="endpoint-method method-get">GET</div>
+                <div class="endpoint-url">/api/bot-stats</div>
             </div>
-        </div>
-        
-        <div id="bot-stats" class="tab-content">
-            <div class="endpoint-card">
-                <div class="endpoint-header">
-                    <div class="endpoint-method method-get">GET</div>
-                    <div class="endpoint-url">/api/bot-stats</div>
-                </div>
-                
-                <div class="endpoint-description">
-                    <p>Returns real-time bot metrics.</p>
-                </div>
-                
-                <div class="endpoint-response">
-                    <div class="response-title">Response</div>
-                    <div class="json-block">
-                        <pre><code>{
+            
+            <div class="endpoint-description">
+                <p>Returns real-time statistics about the bot's presence and performance.</p>
+            </div>
+            
+            <div class="endpoint-response">
+                <div class="response-title">Response</div>
+                <div class="json-block">
+                    <pre><code>{
   <span class="json-key">"guilds"</span>: <span class="json-number">127</span>,
   <span class="json-key">"users"</span>: <span class="json-number">38426</span>,
   <span class="json-key">"uptime"</span>: <span class="json-number">12345.67</span>
 }</code></pre>
-                    </div>
-                    
-                    <h4>Response Fields</h4>
-                    <table class="endpoint-table">
-                        <thead>
-                            <tr>
-                                <th>Field</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>guilds</td>
-                                <td>integer</td>
-                                <td>Number of servers where bot is active</td>
-                            </tr>
-                            <tr>
-                                <td>users</td>
-                                <td>integer</td>
-                                <td>Total unique users across servers</td>
-                            </tr>
-                            <tr>
-                                <td>uptime</td>
-                                <td>float</td>
-                                <td>Bot uptime in seconds</td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
+                
+                <h4>Response Fields</h4>
+                <table class="endpoint-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>guilds</td>
+                            <td>integer</td>
+                            <td>Number of servers where bot is active</td>
+                        </tr>
+                        <tr>
+                            <td>users</td>
+                            <td>integer</td>
+                            <td>Total unique users across servers</td>
+                        </tr>
+                        <tr>
+                            <td>uptime</td>
+                            <td>float</td>
+                            <td>Bot uptime in seconds</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
         
-        <div id="verify-member" class="tab-content">
-            <div class="endpoint-card">
-                <div class="endpoint-header">
-                    <div class="endpoint-method method-post">POST</div>
-                    <div class="endpoint-url">/api/verify-member</div>
-                </div>
+        <div class="endpoint-card">
+            <div class="endpoint-header">
+                <div class="endpoint-method method-post">POST</div>
+                <div class="endpoint-url">/api/verify-member</div>
+            </div>
+            
+            <div class="endpoint-description">
+                <p>Checks if a user belongs to your server and returns member information.</p>
                 
-                <div class="endpoint-description">
-                    <p>Checks if a user belongs to your server and returns member information.</p>
-                    
-                    <h4>Request Body</h4>
-                    <div class="json-block">
-                        <pre><code>{
+                <h4>Request Body</h4>
+                <div class="json-block">
+                    <pre><code>{
   <span class="json-key">"userId"</span>: <span class="json-string">"987654321098765432"</span>
 }</code></pre>
-                    </div>
                 </div>
-                
-                <div class="endpoint-response">
-                    <div class="response-title">Response (Success)</div>
-                    <div class="json-block">
-                        <pre><code>{
+            </div>
+            
+            <div class="endpoint-response">
+                <div class="response-title">Response (Success)</div>
+                <div class="json-block">
+                    <pre><code>{
   <span class="json-key">"id"</span>: <span class="json-string">"987654321098765432"</span>,
   <span class="json-key">"username"</span>: <span class="json-string">"DiscordUser"</span>,
   <span class="json-key">"discriminator"</span>: <span class="json-string">"1234"</span>,
@@ -701,14 +727,56 @@
   ],
   <span class="json-key">"joinedAt"</span>: <span class="json-string">"2023-01-15T10:30:00.000Z"</span>
 }</code></pre>
-                    </div>
-                    
-                    <h4>Response (Errors)</h4>
-                    <ul>
-                        <li><code>400 Bad Request</code>: Invalid/missing userId</li>
-                        <li><code>404 Not Found</code>: Guild or user not found</li>
-                    </ul>
                 </div>
+                
+                <h4>Response Fields</h4>
+                <table class="endpoint-table">
+                    <thead>
+                        <tr>
+                            <th>Field</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>id</td>
+                            <td>string</td>
+                            <td>Discord user ID</td>
+                        </tr>
+                        <tr>
+                            <td>username</td>
+                            <td>string</td>
+                            <td>Discord username</td>
+                        </tr>
+                        <tr>
+                            <td>discriminator</td>
+                            <td>string</td>
+                            <td>User's 4-digit discriminator</td>
+                        </tr>
+                        <tr>
+                            <td>avatar</td>
+                            <td>string</td>
+                            <td>URL to user's avatar image</td>
+                        </tr>
+                        <tr>
+                            <td>roles</td>
+                            <td>array</td>
+                            <td>Array of role objects (id and name)</td>
+                        </tr>
+                        <tr>
+                            <td>joinedAt</td>
+                            <td>string</td>
+                            <td>ISO 8601 timestamp of when user joined the server</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h4>Response (Errors)</h4>
+                <ul>
+                    <li><code>400 Bad Request</code>: Invalid/missing userId in request body</li>
+                    <li><code>404 Not Found</code>: Guild or user not found</li>
+                </ul>
             </div>
         </div>
     </section>
@@ -725,7 +793,7 @@
         <div id="javascript" class="tab-content active">
             <h3>JavaScript (Node.js)</h3>
             <pre><code>const verifyMember = async (userId) => {
-  const response = await fetch('http://your-bot-ip:20166/api/verify-member', {
+  const response = await fetch('http://bot-ip:20166/api/verify-member', {
     method: 'POST',
     headers: {
       'Authorization': `Bearer YOUR_API_KEY`,
@@ -768,13 +836,13 @@ print(f"Bot is in {stats['guilds']} servers with {stats['users']} users")</code>
             <h3>cURL</h3>
             <pre><code># Get secure data
 curl -H "Authorization: Bearer YOUR_API_KEY" \
-  http://your-bot-ip:20166/api/secure-data
+  http://bot-ip:20166/api/secure-data
 
 # Verify member
 curl -X POST -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -d '{"userId":"987654321098765432"}' \
-  http://your-bot-ip:20166/api/verify-member</code></pre>
+  http://bot-ip:20166/api/verify-member</code></pre>
         </div>
     </section>
     
@@ -807,7 +875,7 @@ curl -X POST -H "Content-Type: application/json" \
     </section>
     
     <section id="use-cases">
-        <h2>Use Case Examples</h2>
+        <h2>Practical Use Cases</h2>
         
         <div class="use-case-grid">
             <div class="use-case-card">
@@ -854,31 +922,7 @@ curl -X POST -H "Content-Type: application/json" \
     
     <footer>
         <p>© 2024 DonnySavage Bot | API Version 1.0</p>
-        <p>This document was last updated on <span class="formatted-date">2025-06-20</span></p>
+        <p>This documentation is for authorized developers only</p>
     </footer>
-    
-    <script>
-        // Tab functionality
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs
-                document.querySelectorAll('.tab').forEach(t => {
-                    t.classList.remove('active');
-                });
-                
-                // Add active class to clicked tab
-                tab.classList.add('active');
-                
-                // Hide all tab content
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
-                });
-                
-                // Show target tab content
-                const targetId = tab.getAttribute('data-tab');
-                document.getElementById(targetId).classList.add('active');
-            });
-        });
-    </script>
 </body>
 </html>

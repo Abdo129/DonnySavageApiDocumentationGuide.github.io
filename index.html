@@ -682,7 +682,7 @@
                 <h3>Test Authentication</h3>
                 <p>Verify your key works using this cURL command:</p>
                 <pre><code>curl.exe -H "x-api-key: YOUR_API_KEY" ^
-http://donnysavagebot.publicvm.com/api/secure-data</code></pre>
+https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
               
             </div>
             
@@ -731,7 +731,7 @@ http://donnysavagebot.publicvm.com/api/secure-data</code></pre>
         <div class="section-container">
             <div>
                 <h3>API Base URL</h3>
-                <pre><code>http://donnysavagebot.publicvm.com</code></pre>
+                <pre><code>https://bot.api.donnysavagebot.publicvm.com</code></pre>
                 
             </div>
             
@@ -1039,10 +1039,10 @@ const verifyMember = async (userId, getCount = false) => {
   try {
     const bodyData = getCount ? { userId: 'count' } : { userId };
     
-    const response = await fetch('http://localhost:20166/api/verify-member', {
+    const response = await fetch('https://bot.api.donnysavagebot.publicvm.com/api/verify-member', {
       method: 'POST',
       headers: {
-        'x-api-key': '6559b155051c8227e64674159e140cc311ff0fe2a35e8b28c13c60338c00f878',
+        'x-api-key': 'YOUR_API_KEY',
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(bodyData)
@@ -1069,7 +1069,7 @@ const verifyMember = async (userId, getCount = false) => {
 
 // Usage examples:
 // 1. Verify specific member
-verifyMember('591207111808253953')
+verifyMember('USER_ID_HERE')
   .then(memberData => {
     console.log('Member details:', memberData);
     if (memberData.roles.some(role => role.name === 'Admin')) {
@@ -1093,8 +1093,8 @@ verifyMember(null, true)
 import json
 
 # Replace with your actual API key
-API_KEY = '6559b155051c8227e64674159e140cc311ff0fe2a35e8b28c13c60338c00f878'
-API_URL = 'http://localhost:20166/api/verify-member'
+API_KEY = 'YOUR_API_KEY'
+API_URL = 'https://bot.api.donnysavagebot.publicvm.com/api/verify-member'
 
 def verify_member(user_id=None, get_count=False):
     """
@@ -1150,7 +1150,7 @@ def verify_member(user_id=None, get_count=False):
 if __name__ == '__main__':
     # Example 1: Verify specific member
     try:
-        member_data = verify_member('591207111808253953')
+        member_data = verify_member('USER_ID_HERE')
         print('Member details:', member_data)
         
         # Check if user is admin
@@ -1172,20 +1172,20 @@ if __name__ == '__main__':
             <pre><code># Verify API key
 
  curl.exe -H "x-api-key: YOUR_API_KEY" ^
-  http://donnysavagebot.publicvm.com/api/secure-data
+  https://bot.api.donnysavagebot.publicvm.com/api/secure-data
 
 # Get bot statistics
 curl.exe -H "x-api-key: YOUR_API_KEY" ^
-  http://donnysavagebot.publicvm.com/api/bot-stats
+  https://bot.api.donnysavagebot.publicvm.com/api/bot-stats
 
 # Verify member
-curl.exe -X POST "http://donnysavagebot.publicvm.com/api/verify-member" ^
+curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member" ^
   -H "x-api-key: YOUR_API_KEY" ^
   -H "Content-Type: application/json" ^
   -d "{\"userId\": \"591207111808253953\"}"
 
 # Get Server Member count
- curl.exe -X POST "http://donnysavagebot.publicvm.com/api/verify-member" ^
+ curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member" ^
   -H "x-api-key: YOUR_API_KEY" ^
   -H "Content-Type: application/json" ^
   -d "{\"userId\": \"count\"}"</code></pre>

@@ -660,7 +660,7 @@
                 <p>Programmatic access to bot functionality and server data</p>
             </div>
             <div class="last-updated">
-                <span>Last updated: June 21, 2025</span>
+                <span>Last updated: June 26, 2025</span>
             </div>
         </div>
     </header>
@@ -683,7 +683,6 @@
                 <p>Verify your key works using this cURL command:</p>
                 <pre><code>curl.exe -H "x-api-key: YOUR_API_KEY" ^
 https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
-              
             </div>
             
             <div class="step">
@@ -692,6 +691,7 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                 <ul>
                     <li>🔍 Member verification - <code>/api/verify-member</code></li>
                     <li>📊 Bot statistics - <code>/api/bot-stats</code></li>
+                    <li>🔐 Secure data - <code>/api/secure-data</code></li>
                 </ul>
             </div>
             
@@ -732,7 +732,6 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
             <div>
                 <h3>API Base URL</h3>
                 <pre><code>https://bot.api.donnysavagebot.publicvm.com</code></pre>
-                
             </div>
             
             <div>
@@ -768,6 +767,10 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                 <p>Verifies API key authentication and returns basic service information.</p>
                 <div class="tip">
                     <strong>Use Case:</strong> First endpoint to call to verify your API key is working properly
+                </div>
+                
+                <div class="warning">
+                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
                 </div>
             </div>
             
@@ -828,6 +831,10 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                 <div class="tip">
                     <strong>Use Case:</strong> Monitor bot health and performance on your dashboard
                 </div>
+                
+                <div class="warning">
+                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                </div>
             </div>
             
             <div class="endpoint-response">
@@ -885,35 +892,36 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                 <div class="tip">
                     <strong>New Use Case:</strong> Display server member count on your website or dashboard to show community size
                 </div>
-            
-       
                 
+                <div class="warning">
+                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                </div>
                 
                 <h4>Request Parameters (GET)</h4>
-        <table class="endpoint-table">
-            <thead>
-                <tr>
-                    <th>Parameter</th>
-                    <th>Type</th>
-                    <th>Description</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>userId</td>
-                    <td>string</td>
-                    <td>Discord user ID or "count" to get server member count</td>
-                </tr>
-            </tbody>
-        </table>
-        
-        <h4>Request Body (POST)</h4>
-        <div class="json-block">
-            <pre><code>{
+                <table class="endpoint-table">
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>userId</td>
+                            <td>string</td>
+                            <td>Discord user ID or "count" to get server member count</td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <h4>Request Body (POST)</h4>
+                <div class="json-block">
+                    <pre><code>{
   <span class="json-key">"userId"</span>: <span class="json-string">"987654321098765432"</span> <span class="json-comment">// or "count" for member count</span>
 }</code></pre>
-        </div>
-    </div>
+                </div>
+            </div>
             
             <div class="endpoint-response">
                 <div class="response-title">Response (Member Verification)</div>
@@ -979,6 +987,17 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                         </tr>
                     </tbody>
                 </table>
+                
+                <div class="response-title">Response (Member Count)</div>
+                <div class="json-block">
+                    <pre><code>{
+  <span class="json-key">"status"</span>: <span class="json-string">"success"</span>,
+  <span class="json-key">"guildId"</span>: <span class="json-string">"123456789012345678"</span>,
+  <span class="json-key">"guildName"</span>: <span class="json-string">"My Awesome Server"</span>,
+  <span class="json-key">"memberCount"</span>: <span class="json-number">250</span>
+}</code></pre>
+                </div>
+                
                 <h4>Response Fields (Count)</h4>
                 <table class="endpoint-table">
                     <thead>
@@ -1020,7 +1039,7 @@ https://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
                     <li><code>429 Too Many Requests</code>: Rate limit exceeded</li>
                 </ul>
             </div>
-        
+        </div>
     </section>
     
     <section id="implementation">
@@ -1084,7 +1103,29 @@ verifyMember('USER_ID_HERE')
 verifyMember(null, true)
   .then(data => {
     console.log(`✅ The API origin server currently has ${data.memberCount} members.`);
-  });</code></pre>
+  });
+
+// Bot Statistics Example
+const getBotStats = async () => {
+  try {
+    const response = await fetch('https://bot.api.donnysavagebot.publicvm.com/api/bot-stats', {
+      headers: {
+        'x-api-key': 'YOUR_API_KEY'
+      }
+    });
+    
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to get bot stats:', error);
+  }
+};
+
+// Usage:
+getBotStats().then(stats => {
+  console.log(`Bot Stats: ${stats.guilds} servers, ${stats.users} users`);
+});</code></pre>
         </div>
         
         <div id="python" class="tab-content">
@@ -1094,7 +1135,6 @@ import json
 
 # Replace with your actual API key
 API_KEY = 'YOUR_API_KEY'
-API_URL = 'https://bot.api.donnysavagebot.publicvm.com/api/verify-member'
 
 def verify_member(user_id=None, get_count=False):
     """
@@ -1116,7 +1156,7 @@ def verify_member(user_id=None, get_count=False):
         
         # Make API request
         response = requests.post(
-            API_URL,
+            'https://bot.api.donnysavagebot.publicvm.com/api/verify-member',
             headers=headers,
             json=payload
         )
@@ -1147,6 +1187,19 @@ def verify_member(user_id=None, get_count=False):
         print('❌ Invalid JSON response from server')
         raise
 
+def get_bot_stats():
+    """Get bot statistics"""
+    try:
+        response = requests.get(
+            'https://bot.api.donnysavagebot.publicvm.com/api/bot-stats',
+            headers={'x-api-key': API_KEY}
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.RequestException as err:
+        print(f'❌ Failed to get bot stats: {str(err)}')
+        raise
+
 if __name__ == '__main__':
     # Example 1: Verify specific member
     try:
@@ -1164,14 +1217,20 @@ if __name__ == '__main__':
         count_data = verify_member(get_count=True)
         print(f'✅ The API origin server currently has {count_data["memberCount"]} members.')
     except Exception:
-        print('Failed to get member count')</code></pre>
+        print('Failed to get member count')
+    
+    # Example 3: Get bot statistics
+    try:
+        stats = get_bot_stats()
+        print(f'Bot Stats: {stats["guilds"]} servers, {stats["users"]} users')
+    except Exception:
+        print('Failed to get bot stats')</code></pre>
         </div>
         
         <div id="curl" class="tab-content">
             <h3>cURL</h3>
             <pre><code># Verify API key
-
- curl.exe -H "x-api-key: YOUR_API_KEY" ^
+curl.exe -H "x-api-key: YOUR_API_KEY" ^
   https://bot.api.donnysavagebot.publicvm.com/api/secure-data
 
 # Get bot statistics
@@ -1185,7 +1244,7 @@ curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member"
   -d "{\"userId\": \"591207111808253953\"}"
 
 # Get Server Member count
- curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member" ^
+curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member" ^
   -H "x-api-key: YOUR_API_KEY" ^
   -H "Content-Type: application/json" ^
   -d "{\"userId\": \"count\"}"</code></pre>
@@ -1198,7 +1257,10 @@ curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member"
         <div class="section-container">
             <div>
                 <h3>Rate Limiting</h3>
-                <p>Max <span class="highlight">20 requests</span> per <span class="highlight">15 minutes</span> per IP</p>
+                <p>Max <span class="highlight">30 requests</span> per <span class="highlight">10 minutes</span> per IP</p>
+                <div class="note-box">
+                    <strong>Note:</strong> This rate limit applies to all protected API endpoints
+                </div>
                 <div class="tip">
                     <strong>Tip:</strong> Implement caching for frequently accessed data to stay within limits
                 </div>
@@ -1312,11 +1374,11 @@ curl.exe -X POST "https://bot.api.donnysavagebot.publicvm.com/api/verify-member"
                 <strong>Email</strong>
                 <p>donnysavagehelp@gmail.com</p>
             </div>
-          
+        </div>
     </section>
     
     <footer>
-        <p>© 2024-2025 DonnySavage Bot | API Version 1.0</p>
+        <p>© 2025 DonnySavage Bot | API Version 1.0</p>
         <p>This documentation is a guide for developers only</p>
     </footer>
 </body>

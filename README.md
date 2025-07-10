@@ -16,4 +16,4 @@ Programmatic access to Discord bot functionality and server data via REST API.
 1. Generate API key via Discord command
 2. Test authentication:
    ```bash
-   curl.exe -H "x-api-key: YOUR_API_KEY" https://bot.api.donnysavagebot.publicvm.com/api/secure-data
+   curl.exe -H "x-api-key: YOUR_API_KEY" http://bot.api.donnysavagebot.publicvm.com/api/secure-data

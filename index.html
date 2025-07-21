@@ -55,11 +55,92 @@
                     document.getElementById(targetId).classList.add('active');
                 });
             });
+
+            // Mobile menu functionality
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const closeMenu = document.getElementById('closeMenu');
+            const sidebar = document.getElementById('sidebar');
+            const collapseBtn = document.getElementById('collapseBtn');
+            
+            menuBtn.addEventListener('click', () => {
+                sidebar.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+            
+            closeMenu.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+                document.body.style.overflow = '';
+            });
+            
+            // Close menu when clicking outside on mobile
+            document.addEventListener('click', (e) => {
+                if (sidebar.classList.contains('active') && 
+                    !sidebar.contains(e.target) && 
+                    !menuBtn.contains(e.target) &&
+                    window.innerWidth <= 768) {
+                    sidebar.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            });
+            
+            // Smooth scrolling for anchor links
+            document.querySelectorAll('.sidebar a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    const targetId = this.getAttribute('href');
+                    if(targetId === '#') return;
+                    
+                    const targetElement = document.querySelector(targetId);
+                    if(targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                        
+                        // Close mobile menu after navigation
+                        if (window.innerWidth <= 768) {
+                            sidebar.classList.remove('active');
+                            document.body.style.overflow = '';
+                        }
+                    }
+                });
+            });
+
+            // Collapse sidebar functionality
+            const savedSidebarState = localStorage.getItem('sidebarCollapsed');
+            if (savedSidebarState === 'true') {
+                document.querySelector('.sidebar').classList.add('collapsed');
+                document.querySelector('.content-wrapper').classList.add('collapsed');
+                document.getElementById('collapseIcon').classList.remove('fa-chevron-left');
+                document.getElementById('collapseIcon').classList.add('fa-chevron-right');
+            }
+            
+            collapseBtn.addEventListener('click', () => {
+                const sidebar = document.querySelector('.sidebar');
+                const content = document.querySelector('.content-wrapper');
+                const isCollapsing = !sidebar.classList.contains('collapsed');
+                
+                sidebar.classList.toggle('collapsed');
+                content.classList.toggle('collapsed');
+                
+                const icon = document.getElementById('collapseIcon');
+                if (isCollapsing) {
+                    icon.classList.remove('fa-chevron-left');
+                    icon.classList.add('fa-chevron-right');
+                } else {
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-left');
+                }
+                
+                localStorage.setItem('sidebarCollapsed', isCollapsing);
+            });
         });
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DonnySavage Bot API Documentation</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --primary: #5865F2;
@@ -84,6 +165,9 @@
             --warning-border: #f59e0b;
             --important-bg: rgba(239, 68, 68, 0.1);
             --important-border: #ef4444;
+            --sidebar-bg: #1e2124;
+            --sidebar-text: #e3e5e8;
+            --sidebar-hover: #2c2f33;
         }
 
         [data-theme="dark"] {
@@ -101,6 +185,9 @@
             --tip-bg: rgba(16, 185, 129, 0.15);
             --warning-bg: rgba(245, 158, 11, 0.15);
             --important-bg: rgba(239, 68, 68, 0.15);
+            --sidebar-bg: #121416;
+            --sidebar-text: #e3e5e8;
+            --sidebar-hover: #2c2f33;
         }
         
         * {
@@ -119,6 +206,218 @@
             margin: 0 auto;
             padding: 20px;
             position: relative;
+        }
+        
+        /* New sidebar styles */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: var(--sidebar-bg);
+            color: var(--sidebar-text);
+            padding: 20px 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease, width 0.3s ease;
+        }
+        
+        .sidebar.active {
+            transform: translateX(0);
+            box-shadow: 5px 0 15px rgba(0,0,0,0.2);
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .sidebar-header h2 {
+            color: var(--primary-light);
+            font-size: 1.4rem;
+            transition: opacity 0.3s ease;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+        }
+        
+        .sidebar li {
+            margin-bottom: 5px;
+        }
+        
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: var(--sidebar-text);
+            text-decoration: none;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+        
+        .sidebar a:hover, .sidebar a.active {
+            background: var(--sidebar-hover);
+            border-left: 3px solid var(--primary);
+            color: white;
+        }
+        
+        .sidebar a i {
+            margin-right: 15px;
+            width: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            min-width: 20px;
+            transition: margin 0.3s ease;
+        }
+        
+        .close-menu {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: transparent;
+            border: none;
+            color: var(--primary-light);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: none;
+        }
+        
+        /* Improved mobile menu button */
+        .mobile-menu-btn {
+            position: fixed;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0 50% 50% 0;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--button-shadow);
+            font-size: 1.6rem;
+            z-index: 900;
+            display: none;
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            background: var(--primary-light);
+        }
+        
+        .content-wrapper {
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Collapsed sidebar styles */
+        .sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .sidebar.collapsed .sidebar-header h2,
+        .sidebar.collapsed .link-text {
+            opacity: 0;
+            width: 0;
+            height: 0;
+            overflow: hidden;
+        }
+        
+        .sidebar.collapsed a i {
+            margin-right: 0;
+        }
+        
+        .sidebar.collapsed .collapse-btn {
+            padding: 10px;
+            justify-content: center;
+        }
+        
+        .sidebar.collapsed .collapse-btn i {
+            margin: 0;
+        }
+        
+        .content-wrapper.collapsed {
+            margin-left: 70px;
+        }
+        
+        /* Adjust content for sidebar on desktop */
+        @media (min-width: 769px) {
+            .sidebar {
+                transform: translateX(0);
+                box-shadow: 5px 0 15px rgba(0,0,0,0.1);
+            }
+            
+            .content-wrapper {
+                margin-left: 260px;
+                padding-left: 20px;
+            }
+            
+            body {
+                padding-left: 0;
+            }
+            
+            .collapse-btn {
+                display: flex;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .mobile-menu-btn, .close-menu {
+                display: flex;
+            }
+            
+            .sidebar {
+                width: 280px;
+                box-shadow: 5px 0 15px rgba(0,0,0,0.3);
+            }
+            
+            .collapse-btn {
+                display: none;
+            }
+            
+            /* Center content vertically when menu is open */
+            .sidebar-header {
+                padding-top: 40px;
+            }
+        }
+        
+        /* Collapse button styles */
+        .collapse-btn {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: var(--sidebar-text);
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 15px 15px;
+            transition: all 0.3s ease;
+            width: calc(100% - 30px);
+        }
+        
+        .collapse-btn:hover {
+            background: var(--primary-light);
+        }
+        
+        .collapse-btn i {
+            margin-right: 10px;
+            transition: transform 0.3s ease;
         }
         
         header {
@@ -660,288 +959,326 @@
             .contact-item {
                 min-width: 100%;
             }
+            
+            .content-wrapper {
+                margin-left: 0 !important;
+                padding-left: 0 !important;
+            }
         }
     </style>
 </head>
 <body>
-    <header>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
-            🌙
+    <!-- Improved mobile menu button -->
+    <button class="mobile-menu-btn" id="mobileMenuBtn">
+        <i class="fas fa-bars"></i>
+    </button>
+    
+    <!-- Sidebar Navigation -->
+    <nav class="sidebar" id="sidebar">
+        <button class="close-menu" id="closeMenu">
+            <i class="fas fa-times"></i>
         </button>
         
-        <div class="api-header">
-            <div>
-                <h1>DonnySavage Bot API Documentation</h1>
-                <p>Programmatic access to bot functionality and server data</p>
-            </div>
-            <div class="last-updated">
-                <span>Last updated: June 26, 2025</span>
-            </div>
+        <div class="sidebar-header">
+            <h2>API Navigation</h2>
+            <button class="collapse-btn" id="collapseBtn">
+                <i class="fas fa-chevron-left" id="collapseIcon"></i>
+                <span class="link-text">Collapse</span>
+            </button>
         </div>
-    </header>
-    
-    <section id="getting-started">
-        <h2>🚀 Getting Started</h2>
-        <p>Follow these steps to quickly integrate with the DonnySavage Bot API:</p>
         
-        <div class="getting-started-steps">
-            <div class="step">
-                <h3>Generate an API Key</h3>
-                <p>In your Discord server, use the command: <code>/auth generate-key service="Your Service Name"</code></p>
-                <div class="warning">
-                    <strong>Important:</strong> Store the key securely - it will only be shown once!
+        <ul>
+            <li><a href="#getting-started"><i class="fas fa-play-circle"></i> <span class="link-text">Getting Started</span></a></li>
+            <li><a href="#introduction"><i class="fas fa-info-circle"></i> <span class="link-text">Introduction</span></a></li>
+            <li><a href="#endpoints"><i class="fas fa-plug"></i> <span class="link-text">API Endpoints</span></a></li>
+            <li><a href="#implementation"><i class="fas fa-code"></i> <span class="link-text">Implementation</span></a></li>
+            <li><a href="#usage"><i class="fas fa-book"></i> <span class="link-text">Usage Guidelines</span></a></li>
+            <li><a href="#use-cases"><i class="fas fa-lightbulb"></i> <span class="link-text">Use Cases</span></a></li>
+            <li><a href="#uptime-stats"><i class="fas fa-chart-line"></i> <span class="link-text">Uptime Stats</span></a></li>
+            <li><a href="#example-project"><i class="fas fa-project-diagram"></i> <span class="link-text">Example Project</span></a></li>
+            <li><a href="#support"><i class="fas fa-life-ring"></i> <span class="link-text">Support & Contact</span></a></li>
+        </ul>
+    </nav>
+    
+    <div class="content-wrapper">
+        <header>
+            <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">
+                🌙
+            </button>
+            
+            <div class="api-header">
+                <div>
+                    <h1>DonnySavage Bot API Documentation</h1>
+                    <p>Programmatic access to bot functionality and server data</p>
+                </div>
+                <div class="last-updated">
+                    <span>Last updated: June 26, 2025</span>
                 </div>
             </div>
-            
-            <div class="step">
-                <h3>Test Authentication</h3>
-                <p>Verify your key works using this cURL command:</p>
-                <pre><code>curl.exe -H "x-api-key: YOUR_API_KEY" ^
-http://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
-            </div>
-            
-            <div class="step">
-                <h3>Choose Your Integration</h3>
-                <p>Select which endpoints you need:</p>
-                <ul>
-                    <li>🔍 Member verification - <code>/api/verify-member</code></li>
-                    <li>📊 Bot statistics - <code>/api/bot-stats</code></li>
-                    <li>🔐 Secure data - <code>/api/secure-data</code></li>
-                </ul>
-            </div>
-            
-            <div class="step">
-                <h3>Implement in Your Application</h3>
-                <p>Use the code examples below in your preferred language</p>
-                <div class="tip">
-                    <strong>Tip:</strong> Start with the example project below if you need a reference implementation
-                </div>
-            </div>
-        </div>
+        </header>
         
-        <div class="example-project">
-            <h4>Starter Project Available In JavaScript</h4>
-            <p>Don't know where to start? Check out our prebuilt example project that demonstrates API integration:</p>
-            <p><a href="https://github.com/Abdo129/DonnySavageAPIGuideProject.github.io/" target="_blank">
-                View On GitHub
-            </a></p>
-            <p>This project includes:</p>
-            <ul>
-                <li>Working implementation of member verification</li>
-                <li>Bot stats dashboard</li>
-                <li>API key management interface</li>
-                <li>Error handling examples</li>
-            </ul>
-        </div>
-    </section>
-    
-    <section id="introduction">
-        <h2>📚 Introduction</h2>
-        <p>The DonnySavage Bot API provides secure, programmatic access to bot functionality and server data. This RESTful API allows developers to integrate bot features into their applications and services.</p>
-        
-        <div class="tip">
-            <strong>Tip:</strong> All API endpoints require authentication. Make sure to include your API key in the x-api-key header.
-        </div>
-        
-        <div class="section-container">
-            <div>
-                <h3>API Base URL</h3>
-                <pre><code>http://bot.api.donnysavagebot.publicvm.com</code></pre>
-            </div>
+        <section id="getting-started">
+            <h2>🚀 Getting Started</h2>
+            <p>Follow these steps to quickly integrate with the DonnySavage Bot API:</p>
             
-            <div>
-                <h3>Authentication</h3>
-                <p>All endpoints require API key authentication:</p>
-                <pre><code>x-api-key: YOUR_API_KEY</code></pre>
-                <p>Keys are generated with <code>/auth generate-key</code></p>
-            </div>
-        </div>
-        
-        <div class="api-key-card">
-            <h3>🔑 Getting an API Key</h3>
-            <p>API keys are generated through the bot's commands:</p>
-            <pre><code>/auth generate-key service="My Web Service"</code></pre>
-            <p>Each key is tied to a specific Discord server and grants access to that server's resources.</p>
-            
-            <div class="important">
-                <strong>Security Notice:</strong> API keys provide access to sensitive server data. Never expose them in client-side code!
-            </div>
-        </div>
-    </section>
-    
-    <section id="endpoints">
-        <h2>🔌 API Endpoints</h2>
-        
-        <div class="endpoint-card">
-            <div class="endpoint-header">
-                <div class="endpoint-method method-get">GET</div>
-                <div class="endpoint-url">/api/secure-data</div>
-            </div>
-            
-            <div class="endpoint-description">
-                <p>Verifies API key authentication and returns basic service information.</p>
-                <div class="tip">
-                    <strong>Use Case:</strong> First endpoint to call to verify your API key is working properly
+            <div class="getting-started-steps">
+                <div class="step">
+                    <h3>Generate an API Key</h3>
+                    <p>In your Discord server, use the command: <code>/auth generate-key service="Your Service Name"</code></p>
+                    <div class="warning">
+                        <strong>Important:</strong> Store the key securely - it will only be shown once!
+                    </div>
                 </div>
                 
-                <div class="warning">
-                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                <div class="step">
+                    <h3>Test Authentication</h3>
+                    <p>Verify your key works using this cURL command:</p>
+                    <pre><code>curl.exe -H "x-api-key: YOUR_API_KEY" ^
+http://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
+                </div>
+                
+                <div class="step">
+                    <h3>Choose Your Integration</h3>
+                    <p>Select which endpoints you need:</p>
+                    <ul>
+                        <li>🔍 Member verification - <code>/api/verify-member</code></li>
+                        <li>📊 Bot statistics - <code>/api/bot-stats</code></li>
+                        <li>🔐 Secure data - <code>/api/secure-data</code></li>
+                    </ul>
+                </div>
+                
+                <div class="step">
+                    <h3>Implement in Your Application</h3>
+                    <p>Use the code examples below in your preferred language</p>
+                    <div class="tip">
+                        <strong>Tip:</strong> Start with the example project below if you need a reference implementation
+                    </div>
                 </div>
             </div>
             
-            <div class="endpoint-response">
-                <div class="response-title">Response</div>
-                <div class="json-block">
-                    <pre><code>{
+            <div class="example-project">
+                <h4>Starter Project Available In JavaScript</h4>
+                <p>Don't know where to start? Check out our prebuilt example project that demonstrates API integration:</p>
+                <p><a href="https://github.com/Abdo129/DonnySavageAPIGuideProject.github.io/" target="_blank">
+                    View On GitHub
+                </a></p>
+                <p>This project includes:</p>
+                <ul>
+                    <li>Working implementation of member verification</li>
+                    <li>Bot stats dashboard</li>
+                    <li>API key management interface</li>
+                    <li>Error handling examples</li>
+                </ul>
+            </div>
+        </section>
+        
+        <section id="introduction">
+            <h2>📚 Introduction</h2>
+            <p>The DonnySavage Bot API provides secure, programmatic access to bot functionality and server data. This RESTful API allows developers to integrate bot features into their applications and services.</p>
+            
+            <div class="tip">
+                <strong>Tip:</strong> All API endpoints require authentication. Make sure to include your API key in the x-api-key header.
+            </div>
+            
+            <div class="section-container">
+                <div>
+                    <h3>API Base URL</h3>
+                    <pre><code>http://bot.api.donnysavagebot.publicvm.com</code></pre>
+                </div>
+                
+                <div>
+                    <h3>Authentication</h3>
+                    <p>All endpoints require API key authentication:</p>
+                    <pre><code>x-api-key: YOUR_API_KEY</code></pre>
+                    <p>Keys are generated with <code>/auth generate-key</code></p>
+                </div>
+            </div>
+            
+            <div class="api-key-card">
+                <h3>🔑 Getting an API Key</h3>
+                <p>API keys are generated through the bot's commands:</p>
+                <pre><code>/auth generate-key service="My Web Service"</code></pre>
+                <p>Each key is tied to a specific Discord server and grants access to that server's resources.</p>
+                
+                <div class="important">
+                    <strong>Security Notice:</strong> API keys provide access to sensitive server data. Never expose them in client-side code!
+                </div>
+            </div>
+        </section>
+        
+        <section id="endpoints">
+            <h2>🔌 API Endpoints</h2>
+            
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <div class="endpoint-method method-get">GET</div>
+                    <div class="endpoint-url">/api/secure-data</div>
+                </div>
+                
+                <div class="endpoint-description">
+                    <p>Verifies API key authentication and returns basic service information.</p>
+                    <div class="tip">
+                        <strong>Use Case:</strong> First endpoint to call to verify your API key is working properly
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                    </div>
+                </div>
+                
+                <div class="endpoint-response">
+                    <div class="response-title">Response</div>
+                    <div class="json-block">
+                        <pre><code>{
   <span class="json-key">"status"</span>: <span class="json-string">"success"</span>,
   <span class="json-key">"message"</span>: <span class="json-string">"Access granted to protected resource"</span>,
   <span class="json-key">"service"</span>: <span class="json-string">"Your Service Name"</span>,
   <span class="json-key">"guildId"</span>: <span class="json-string">"123456789012345678"</span>
 }</code></pre>
-                </div>
-                
-                <h4>Response Fields</h4>
-                <table class="endpoint-table">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>status</td>
-                            <td>string</td>
-                            <td>Operation status ("success")</td>
-                        </tr>
-                        <tr>
-                            <td>message</td>
-                            <td>string</td>
-                            <td>Confirmation message</td>
-                        </tr>
-                        <tr>
-                            <td>service</td>
-                            <td>string</td>
-                            <td>Name of the service associated with the API key</td>
-                        </tr>
-                        <tr>
-                            <td>guildId</td>
-                            <td>string</td>
-                            <td>Discord server ID associated with the API key</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="endpoint-card">
-            <div class="endpoint-header">
-                <div class="endpoint-method method-get">GET</div>
-                <div class="endpoint-url">/api/bot-stats</div>
-            </div>
-            
-            <div class="endpoint-description">
-                <p>Returns real-time statistics about the bot's presence and performance.</p>
-                <div class="tip">
-                    <strong>Use Case:</strong> Monitor bot health and performance on your dashboard
-                </div>
-                
-                <div class="warning">
-                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                    </div>
+                    
+                    <h4>Response Fields</h4>
+                    <table class="endpoint-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>status</td>
+                                <td>string</td>
+                                <td>Operation status ("success")</td>
+                            </tr>
+                            <tr>
+                                <td>message</td>
+                                <td>string</td>
+                                <td>Confirmation message</td>
+                            </tr>
+                            <tr>
+                                <td>service</td>
+                                <td>string</td>
+                                <td>Name of the service associated with the API key</td>
+                            </tr>
+                            <tr>
+                                <td>guildId</td>
+                                <td>string</td>
+                                <td>Discord server ID associated with the API key</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
             
-            <div class="endpoint-response">
-                <div class="response-title">Response</div>
-                <div class="json-block">
-                    <pre><code>{
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <div class="endpoint-method method-get">GET</div>
+                    <div class="endpoint-url">/api/bot-stats</div>
+                </div>
+                
+                <div class="endpoint-description">
+                    <p>Returns real-time statistics about the bot's presence and performance.</p>
+                    <div class="tip">
+                        <strong>Use Case:</strong> Monitor bot health and performance on your dashboard
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                    </div>
+                </div>
+                
+                <div class="endpoint-response">
+                    <div class="response-title">Response</div>
+                    <div class="json-block">
+                        <pre><code>{
   <span class="json-key">"guilds"</span>: <span class="json-number">127</span>,
   <span class="json-key">"users"</span>: <span class="json-number">38426</span>,
   <span class="json-key">"uptime"</span>: <span class="json-number">12345.67</span>
 }</code></pre>
+                    </div>
+                    
+                    <h4>Response Fields</h4>
+                    <table class="endpoint-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>guilds</td>
+                                <td>integer</td>
+                                <td>Number of servers where bot is active</td>
+                            </tr>
+                            <tr>
+                                <td>users</td>
+                                <td>integer</td>
+                                <td>Total unique users across servers</td>
+                            </tr>
+                            <tr>
+                                <td>uptime</td>
+                                <td>float</td>
+                                <td>Bot uptime in seconds</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                
-                <h4>Response Fields</h4>
-                <table class="endpoint-table">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>guilds</td>
-                            <td>integer</td>
-                            <td>Number of servers where bot is active</td>
-                        </tr>
-                        <tr>
-                            <td>users</td>
-                            <td>integer</td>
-                            <td>Total unique users across servers</td>
-                        </tr>
-                        <tr>
-                            <td>uptime</td>
-                            <td>float</td>
-                            <td>Bot uptime in seconds</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <div class="endpoint-card">
-            <div class="endpoint-header">
-                <div class="endpoint-method method-post">POST</div>
-                <div class="endpoint-method method-get">GET</div>
-                <div class="endpoint-url">/api/verify-member</div>
             </div>
             
-            <div class="endpoint-description">
-                <p>Checks if a user belongs to your server, returns member information, or gets server member count.</p>
-                <div class="tip">
-                    <strong>Use Case:</strong> Authenticate users for role-based access or restrict services to Discord members. For instance, allow access only to users who log in with their Discord account and belong to your server, ensuring secure and exclusive content delivery.
-                </div>
-                <div class="tip">
-                    <strong>New Use Case:</strong> Display server member count on your website or dashboard to show community size
+            <div class="endpoint-card">
+                <div class="endpoint-header">
+                    <div class="endpoint-method method-post">POST</div>
+                    <div class="endpoint-method method-get">GET</div>
+                    <div class="endpoint-url">/api/verify-member</div>
                 </div>
                 
-                <div class="warning">
-                    <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
-                </div>
-                
-                <h4>Request Parameters (GET)</h4>
-                <table class="endpoint-table">
-                    <thead>
-                        <tr>
-                            <th>Parameter</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>userId</td>
-                            <td>string</td>
-                            <td>Discord user ID or "count" to get server member count</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <h4>Request Body (POST)</h4>
-                <div class="json-block">
-                    <pre><code>{
+                <div class="endpoint-description">
+                    <p>Checks if a user belongs to your server, returns member information, or gets server member count.</p>
+                    <div class="tip">
+                        <strong>Use Case:</strong> Authenticate users for role-based access or restrict services to Discord members. For instance, allow access only to users who log in with their Discord account and belong to your server, ensuring secure and exclusive content delivery.
+                    </div>
+                    <div class="tip">
+                        <strong>New Use Case:</strong> Display server member count on your website or dashboard to show community size
+                    </div>
+                    
+                    <div class="warning">
+                        <strong>Rate Limit:</strong> 30 requests per 10 minutes per IP
+                    </div>
+                    
+                    <h4>Request Parameters (GET)</h4>
+                    <table class="endpoint-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>userId</td>
+                                <td>string</td>
+                                <td>Discord user ID or "count" to get server member count</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h4>Request Body (POST)</h4>
+                    <div class="json-block">
+                        <pre><code>{
   <span class="json-key">"userId"</span>: <span class="json-string">"987654321098765432"</span> <span class="json-comment">// or "count" for member count</span>
 }</code></pre>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="endpoint-response">
-                <div class="response-title">Response (Member Verification)</div>
-                <div class="json-block">
-                    <pre><code>{
+                
+                <div class="endpoint-response">
+                    <div class="response-title">Response (Member Verification)</div>
+                    <div class="json-block">
+                        <pre><code>{
   <span class="json-key">"id"</span>: <span class="json-string">"987654321098765432"</span>,
   <span class="json-key">"username"</span>: <span class="json-string">"DiscordUser"</span>,
   <span class="json-key">"discriminator"</span>: <span class="json-string">"1234"</span>,
@@ -958,117 +1295,117 @@ http://bot.api.donnysavagebot.publicvm.com/api/secure-data</code></pre>
   ],
   <span class="json-key">"joinedAt"</span>: <span class="json-string">"2023-01-15T10:30:00.000Z"</span>
 }</code></pre>
-                </div>
-                
-                <h4>Response Fields (Verification)</h4>
-                <table class="endpoint-table">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>id</td>
-                            <td>string</td>
-                            <td>Discord user ID</td>
-                        </tr>
-                        <tr>
-                            <td>username</td>
-                            <td>string</td>
-                            <td>Discord username</td>
-                        </tr>
-                        <tr>
-                            <td>discriminator</td>
-                            <td>string</td>
-                            <td>User's 4-digit discriminator</td>
-                        </tr>
-                        <tr>
-                            <td>avatar</td>
-                            <td>string</td>
-                            <td>URL to user's avatar image</td>
-                        </tr>
-                        <tr>
-                            <td>roles</td>
-                            <td>array</td>
-                            <td>Array of role objects (id and name)</td>
-                        </tr>
-                        <tr>
-                            <td>joinedAt</td>
-                            <td>string</td>
-                            <td>ISO 8601 timestamp of when user joined the server</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <div class="response-title">Response (Member Count)</div>
-                <div class="json-block">
-                    <pre><code>{
+                    </div>
+                    
+                    <h4>Response Fields (Verification)</h4>
+                    <table class="endpoint-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>id</td>
+                                <td>string</td>
+                                <td>Discord user ID</td>
+                            </tr>
+                            <tr>
+                                <td>username</td>
+                                <td>string</td>
+                                <td>Discord username</td>
+                            </tr>
+                            <tr>
+                                <td>discriminator</td>
+                                <td>string</td>
+                                <td>User's 4-digit discriminator</td>
+                            </tr>
+                            <tr>
+                                <td>avatar</td>
+                                <td>string</td>
+                                <td>URL to user's avatar image</td>
+                            </tr>
+                            <tr>
+                                <td>roles</td>
+                                <td>array</td>
+                                <td>Array of role objects (id and name)</td>
+                            </tr>
+                            <tr>
+                                <td>joinedAt</td>
+                                <td>string</td>
+                                <td>ISO 8601 timestamp of when user joined the server</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <div class="response-title">Response (Member Count)</div>
+                    <div class="json-block">
+                        <pre><code>{
   <span class="json-key">"status"</span>: <span class="json-string">"success"</span>,
   <span class="json-key">"guildId"</span>: <span class="json-string">"123456789012345678"</span>,
   <span class="json-key">"guildName"</span>: <span class="json-string">"My Awesome Server"</span>,
   <span class="json-key">"memberCount"</span>: <span class="json-number">250</span>
 }</code></pre>
+                    </div>
+                    
+                    <h4>Response Fields (Count)</h4>
+                    <table class="endpoint-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>status</td>
+                                <td>string</td>
+                                <td>Operation status ("success")</td>
+                            </tr>
+                            <tr>
+                                <td>guildId</td>
+                                <td>string</td>
+                                <td>Discord server ID associated with the API key</td>
+                            </tr>
+                            <tr>
+                                <td>guildName</td>
+                                <td>string</td>
+                                <td>Name of the Discord server</td>
+                            </tr>
+                            <tr>
+                                <td>memberCount</td>
+                                <td>integer</td>
+                                <td>Total number of members in the server</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <h4>Response (Errors)</h4>
+                    <ul>
+                        <li><code>400 Bad Request</code>: Invalid/missing userId in request body</li>
+                        <li><code>401 Unauthorized</code>: Missing or invalid API key</li>
+                        <li><code>404 Not Found</code>: Guild or user not found</li>
+                        <li><code>429 Too Many Requests</code>: Rate limit exceeded</li>
+                    </ul>
                 </div>
-                
-                <h4>Response Fields (Count)</h4>
-                <table class="endpoint-table">
-                    <thead>
-                        <tr>
-                            <th>Field</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>status</td>
-                            <td>string</td>
-                            <td>Operation status ("success")</td>
-                        </tr>
-                        <tr>
-                            <td>guildId</td>
-                            <td>string</td>
-                            <td>Discord server ID associated with the API key</td>
-                        </tr>
-                        <tr>
-                            <td>guildName</td>
-                            <td>string</td>
-                            <td>Name of the Discord server</td>
-                        </tr>
-                        <tr>
-                            <td>memberCount</td>
-                            <td>integer</td>
-                            <td>Total number of members in the server</td>
-                        </tr>
-                    </tbody>
-                </table>
-                
-                <h4>Response (Errors)</h4>
-                <ul>
-                    <li><code>400 Bad Request</code>: Invalid/missing userId in request body</li>
-                    <li><code>401 Unauthorized</code>: Missing or invalid API key</li>
-                    <li><code>404 Not Found</code>: Guild or user not found</li>
-                    <li><code>429 Too Many Requests</code>: Rate limit exceeded</li>
-                </ul>
             </div>
-        </div>
-    </section>
-    
-    <section id="implementation">
-        <h2>💻 Implementation Examples</h2>
+        </section>
         
-        <div class="tabs">
-            <div class="tab active" data-tab="javascript">JavaScript</div>
-            <div class="tab" data-tab="python">Python</div>
-            <div class="tab" data-tab="curl">cURL</div>
-        </div>
-        
-        <div id="javascript" class="tab-content active">
-            <h3>JavaScript (Node.js)</h3>
-            <pre><code>// Member Verification Example
+        <section id="implementation">
+            <h2>💻 Implementation Examples</h2>
+            
+            <div class="tabs">
+                <div class="tab active" data-tab="javascript">JavaScript</div>
+                <div class="tab" data-tab="python">Python</div>
+                <div class="tab" data-tab="curl">cURL</div>
+            </div>
+            
+            <div id="javascript" class="tab-content active">
+                <h3>JavaScript (Node.js)</h3>
+                <pre><code>// Member Verification Example
 const verifyMember = async (userId, getCount = false) => {
   try {
     const bodyData = getCount ? { userId: 'count' } : { userId };
@@ -1141,11 +1478,11 @@ const getBotStats = async () => {
 getBotStats().then(stats => {
   console.log(`Bot Stats: ${stats.guilds} servers, ${stats.users} users`);
 });</code></pre>
-        </div>
-        
-        <div id="python" class="tab-content">
-            <h3>Python</h3>
-            <pre><code>import requests
+            </div>
+            
+            <div id="python" class="tab-content">
+                <h3>Python</h3>
+                <pre><code>import requests
 import json
 
 # Replace with your actual API key
@@ -1240,11 +1577,11 @@ if __name__ == '__main__':
         print(f'Bot Stats: {stats["guilds"]} servers, {stats["users"]} users')
     except Exception:
         print('Failed to get bot stats')</code></pre>
-        </div>
-        
-        <div id="curl" class="tab-content">
-            <h3>cURL</h3>
-            <pre><code># Verify API key
+            </div>
+            
+            <div id="curl" class="tab-content">
+                <h3>cURL</h3>
+                <pre><code># Verify API key
 curl.exe -H "x-api-key: YOUR_API_KEY" ^
   http://bot.api.donnysavagebot.publicvm.com/api/secure-data
 
@@ -1263,157 +1600,158 @@ curl.exe -X POST "http://bot.api.donnysavagebot.publicvm.com/api/verify-member" 
   -H "x-api-key: YOUR_API_KEY" ^
   -H "Content-Type: application/json" ^
   -d "{\"userId\": \"count\"}"</code></pre>
-        </div>
-    </section>
-    
-    <section id="usage">
-        <h2>📝 Usage Guidelines</h2>
+            </div>
+        </section>
         
-        <div class="section-container">
-            <div>
-                <h3>Rate Limiting</h3>
-                <p>Max <span class="highlight">30 requests</span> per <span class="highlight">10 minutes</span> per IP</p>
-                <div class="note-box">
-                    <strong>Note:</strong> This rate limit applies to all protected API endpoints
+        <section id="usage">
+            <h2>📝 Usage Guidelines</h2>
+            
+            <div class="section-container">
+                <div>
+                    <h3>Rate Limiting</h3>
+                    <p>Max <span class="highlight">30 requests</span> per <span class="highlight">10 minutes</span> per IP</p>
+                    <div class="note-box">
+                        <strong>Note:</strong> This rate limit applies to all protected API endpoints
+                    </div>
+                    <div class="tip">
+                        <strong>Tip:</strong> Implement caching for frequently accessed data to stay within limits
+                    </div>
                 </div>
-                <div class="tip">
-                    <strong>Tip:</strong> Implement caching for frequently accessed data to stay within limits
+                
+                <div>
+                    <h3>Error Handling</h3>
+                    <ul>
+                        <li><code>401 Unauthorized</code>: Invalid/missing API key</li>
+                        <li><code>403 Forbidden</code>: Key doesn't have access to requested resource</li>
+                        <li><code>404 Not Found</code>: Resource not available</li>
+                        <li><code>429 Too Many Requests</code>: Rate limit exceeded</li>
+                        <li><code>500 Internal Server Error</code>: Bot/server issues</li>
+                    </ul>
                 </div>
             </div>
             
-            <div>
-                <h3>Error Handling</h3>
-                <ul>
-                    <li><code>401 Unauthorized</code>: Invalid/missing API key</li>
-                    <li><code>403 Forbidden</code>: Key doesn't have access to requested resource</li>
-                    <li><code>404 Not Found</code>: Resource not available</li>
-                    <li><code>429 Too Many Requests</code>: Rate limit exceeded</li>
-                    <li><code>500 Internal Server Error</code>: Bot/server issues</li>
-                </ul>
-            </div>
-        </div>
-        
-        <h3>Security Recommendations</h3>
-        <ul>
-            <li>Always use HTTPS in production environments</li>
-            <li>Never expose API keys in client-side code</li>
-            <li>Rotate API keys periodically using <code>/auth generate-key</code></li>
-            <li>Store API keys securely using environment variables or secret managers</li>
-            <li>Revoke compromised keys immediately with <code>/auth revoke-key</code></li>
-            <li>Restrict key permissions to only necessary endpoints</li>
-        </ul>
-        
-        <div class="warning">
-            <strong>Warning:</strong> The verify-member endpoint can be rate limited. Implement caching for repeated requests for the same user.
-        </div>
-    </section>
-    
-    <section id="use-cases">
-        <h2>💡 Practical Use Cases</h2>
-        
-        <div class="use-case-grid">
-            <div class="use-case-card">
-                <h4>Web Dashboard Integration</h4>
-                <p>Integrate real-time server statistics into your community dashboard using the bot-stats endpoint. This can also serve as a health check to monitor the bot's performance and uptime.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <h4>Role Gating</h4>
-                <p>Restrict website access to server members using the verify-member endpoint.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <h4>Custom Mod Tools</h4>
-                <p>Build external moderation interfaces that integrate with your Discord server.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <h4>Server Analytics</h4>
-                <p>Track member growth and engagement over time using the bot API.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <h4>User Verification</h4>
-                <p>Verify Discord membership for exclusive content access on your platform.</p>
-            </div>
-            
-            <div class="use-case-card">
-                <h4>Premium Content Access</h4>
-                <p>Grant access to premium features based on Discord roles.</p>
-            </div>
-            <div class="use-case-card">
-                <h4>Show Your Community Size</h4>
-                <p>Display server member count on your website or dashboard.</p>
-            </div>
-        </div>
-    </section>
-
-    <section id="uptime-stats">
-        <h2>⏱️ Uptime Statistics</h2>
-        <div class="stats-container">
-            <div class="use-case-card">
-                <h4>Current Uptime</h4>
-                <div class="stat-value" id="current-uptime">Loading...</div>
-            </div>
-            <div class="use-case-card">
-                <h4 id="current-month-label">Current Month</h4>
-                <div class="stat-value" id="current-month">Loading...</div>
-            </div>
-            <div class="use-case-card">
-                <h4 id="previous-month-label">Previous Month</h4>
-                <div class="stat-value" id="previous-month">Loading...</div>
-            </div>
-        </div>
-    </section>
-    
-    <section id="example-project">
-        <h2>🌟 Example Project</h2>
-        <p>For a complete implementation example, check out our starter project:</p>
-        
-        <div class="use-case-card">
-            <h4>DonnySavage API Guide Project</h4>
-            <p>A ready-to-use implementation demonstrating:</p>
+            <h3>Security Recommendations</h3>
             <ul>
-                <li>API key management interface</li>
-                <li>Member verification flow</li>
-                <li>Server stats dashboard</li>
-                <li>Error handling best practices</li>
+                <li>Always use HTTPS in production environments</li>
+                <li>Never expose API keys in client-side code</li>
+                <li>Rotate API keys periodically using <code>/auth generate-key</code></li>
+                <li>Store API keys securely using environment variables or secret managers</li>
+                <li>Revoke compromised keys immediately with <code>/auth revoke-key</code></li>
+                <li>Restrict key permissions to only necessary endpoints</li>
             </ul>
-            <p><a href="https://github.com/Abdo129/DonnySavageAPIGuideProject.github.io/" target="_blank">
-                View on GitHub
-            </a></p>
-        </div>
+            
+            <div class="warning">
+                <strong>Warning:</strong> The verify-member endpoint can be rate limited. Implement caching for repeated requests for the same user.
+            </div>
+        </section>
         
-        <div class="tip">
-            <strong>Tip:</strong> This project is an excellent starting point if you're new to API integration. 
-            It demonstrates all key features in a working application.
-        </div>
-    </section>
-    
-    <section id="support">
-        <h2>🛠️ Support & Contact</h2>
-        <p>For API support, feature requests, or issues:</p>
+        <section id="use-cases">
+            <h2>💡 Practical Use Cases</h2>
+            
+            <div class="use-case-grid">
+                <div class="use-case-card">
+                    <h4>Web Dashboard Integration</h4>
+                    <p>Integrate real-time server statistics into your community dashboard using the bot-stats endpoint. This can also serve as a health check to monitor the bot's performance and uptime.</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>Role Gating</h4>
+                    <p>Restrict website access to server members using the verify-member endpoint.</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>Custom Mod Tools</h4>
+                    <p>Build external moderation interfaces that integrate with your Discord server.</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>Server Analytics</h4>
+                    <p>Track member growth and engagement over time using the bot API.</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>User Verification</h4>
+                    <p>Verify Discord membership for exclusive content access on your platform.</p>
+                </div>
+                
+                <div class="use-case-card">
+                    <h4>Premium Content Access</h4>
+                    <p>Grant access to premium features based on Discord roles.</p>
+                </div>
+                <div class="use-case-card">
+                    <h4>Show Your Community Size</h4>
+                    <p>Display server member count on your website or dashboard.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="uptime-stats">
+            <h2>⏱️ Uptime Statistics</h2>
+            <div class="stats-container">
+                <div class="use-case-card">
+                    <h4>Current Uptime</h4>
+                    <div class="stat-value" id="current-uptime">Loading...</div>
+                </div>
+                <div class="use-case-card">
+                    <h4 id="current-month-label">Current Month</h4>
+                    <div class="stat-value" id="current-month">Loading...</div>
+                </div>
+                <div class="use-case-card">
+                    <h4 id="previous-month-label">Previous Month</h4>
+                    <div class="stat-value" id="previous-month">Loading...</div>
+                </div>
+            </div>
+        </section>
         
-        <div class="contact-methods">
-            <div class="contact-item">
-                <strong>In-app Command</strong>
-                <p>Use <code>/report</code> command</p>
+        <section id="example-project">
+            <h2>🌟 Example Project</h2>
+            <p>For a complete implementation example, check out our starter project:</p>
+            
+            <div class="use-case-card">
+                <h4>DonnySavage API Guide Project</h4>
+                <p>A ready-to-use implementation demonstrating:</p>
+                <ul>
+                    <li>API key management interface</li>
+                    <li>Member verification flow</li>
+                    <li>Server stats dashboard</li>
+                    <li>Error handling best practices</li>
+                </ul>
+                <p><a href="https://github.com/Abdo129/DonnySavageAPIGuideProject.github.io/" target="_blank">
+                    View on GitHub
+                </a></p>
             </div>
-            <div class="contact-item">
-                <strong>Discord Support</strong>
-                <p><a href="https://discord.gg/kRkkpWTCn7">Support Server</a></p>
+            
+            <div class="tip">
+                <strong>Tip:</strong> This project is an excellent starting point if you're new to API integration. 
+                It demonstrates all key features in a working application.
             </div>
-            <div class="contact-item">
-                <strong>Email</strong>
-                <p><a href="mailto:donnysavagehelp@gmail.com" style="color: #6c75f5;">donnysavagehelp@gmail.com</a></p>
+        </section>
+        
+        <section id="support">
+            <h2>🛠️ Support & Contact</h2>
+            <p>For API support, feature requests, or issues:</p>
+            
+            <div class="contact-methods">
+                <div class="contact-item">
+                    <strong>In-app Command</strong>
+                    <p>Use <code>/report</code> command</p>
+                </div>
+                <div class="contact-item">
+                    <strong>Discord Support</strong>
+                    <p><a href="https://discord.gg/kRkkpWTCn7">Support Server</a></p>
+                </div>
+                <div class="contact-item">
+                    <strong>Email</strong>
+                    <p><a href="mailto:donnysavagehelp@gmail.com" style="color: #6c75f5;">donnysavagehelp@gmail.com</a></p>
+                </div>
             </div>
-        </div>
-    </section>
-    
-    <footer>
-        <p>© 2025 DonnySavage Bot | API Version 1.2</p>
-        <p>This documentation is a guide for developers only</p>
-    </footer>
+        </section>
+        
+        <footer>
+            <p>© 2025 DonnySavage Bot | API Version 1.2</p>
+            <p>This documentation is a guide for developers only</p>
+        </footer>
+    </div>
     
     <script>
         // Format uptime for display

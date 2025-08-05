@@ -1701,6 +1701,9 @@ curl.exe -X POST "http://bot.api.donnysavagebot.publicvm.com/api/verify-member" 
                     <div class="stat-value" id="previous-month">Loading...</div>
                 </div>
             </div>
+            <div id="uptime-error" class="warning" style="display: none;">
+                <strong>Notice:</strong> Unable to fetch uptime statistics at this time. Please try again later.
+            </div>
         </section>
         
         <section id="example-project">
@@ -1765,39 +1768,90 @@ curl.exe -X POST "http://bot.api.donnysavagebot.publicvm.com/api/verify-member" 
             return `${days}d ${hours}h ${minutes}m ${secs}s`;
         }
         
-        // Load real uptime stats
+        // Robust uptime stats loader with retries
         async function loadUptimeStats() {
+            const MAX_RETRIES = 5;
+            const INITIAL_DELAY = 1000; // 1 second
+            const BACKOFF_FACTOR = 2;
+            const errorElement = document.getElementById('uptime-error');
+            
+            let retryCount = 0;
+            let delay = INITIAL_DELAY;
+            
+            const fetchWithRetry = async () => {
+                try {
+                    const response = await fetch('https://bot.api.donnysavagebot.publicvm.com/api/uptime-stats');
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    // Store base uptime and start time for real-time counting
+                    const baseUptime = data.uptime;
+                    const startTime = Date.now();
+                    
+                    // Function to update uptime in real-time
+                    const updateUptime = () => {
+                        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                        const currentUptime = baseUptime + elapsed;
+                        document.getElementById('current-uptime').textContent = formatUptime(currentUptime);
+                    };
+                    
+                    // Initial update
+                    updateUptime();
+                    
+                    // Update every second
+                    setInterval(updateUptime, 1000);
+                    
+                    // Update month names and percentages
+                    document.getElementById('current-month').textContent = `${data.currentMonth.uptimePercentage}%`;
+                    document.getElementById('current-month-label').textContent = data.currentMonth.name;
+                    
+                    document.getElementById('previous-month').textContent = `${data.previousMonth.uptimePercentage}%`;
+                    document.getElementById('previous-month-label').textContent = data.previousMonth.name;
+                    
+                    // Hide error if previously shown
+                    errorElement.style.display = 'none';
+                    
+                    return true;
+                } catch (error) {
+                    console.error(`Attempt ${retryCount + 1} failed:`, error.message);
+                    
+                    if (retryCount < MAX_RETRIES - 1) {
+                        retryCount++;
+                        delay *= BACKOFF_FACTOR;
+                        
+                        console.log(`Retrying in ${delay/1000} seconds...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return fetchWithRetry();
+                    } else {
+                        // Final failure after all retries
+                        console.error('Failed to load uptime stats after multiple attempts');
+                        
+                        // Show error message
+                        errorElement.style.display = 'block';
+                        
+                        // Set placeholder text
+                        document.getElementById('current-uptime').textContent = 'Unavailable';
+                        document.getElementById('current-month').textContent = 'Unavailable';
+                        document.getElementById('previous-month').textContent = 'Unavailable';
+                        
+                        return false;
+                    }
+                }
+            };
+            
             try {
-                const response = await fetch('https://bot.api.donnysavagebot.publicvm.com/api/uptime-stats');
-                if (!response.ok) throw new Error('Failed to fetch data');
+                await fetchWithRetry();
+            } catch (finalError) {
+                console.error('Unexpected error in loadUptimeStats:', finalError);
                 
-                const data = await response.json();
+                // Show error message
+                errorElement.style.display = 'block';
                 
-                // Store base uptime and start time for real-time counting
-                const baseUptime = data.uptime;
-                const startTime = Date.now();
-                
-                // Function to update uptime in real-time
-                const updateUptime = () => {
-                    const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                    const currentUptime = baseUptime + elapsed;
-                    document.getElementById('current-uptime').textContent = formatUptime(currentUptime);
-                };
-                
-                // Initial update
-                updateUptime();
-                
-                // Update every second
-                setInterval(updateUptime, 1000);
-                
-                // Update month names and percentages
-                document.getElementById('current-month').textContent = `${data.currentMonth.uptimePercentage}%`;
-                document.getElementById('current-month-label').textContent = data.currentMonth.name;
-                
-                document.getElementById('previous-month').textContent = `${data.previousMonth.uptimePercentage}%`;
-                document.getElementById('previous-month-label').textContent = data.previousMonth.name;
-            } catch (error) {
-                console.error('Failed to load uptime stats:', error);
+                // Set placeholder text
                 document.getElementById('current-uptime').textContent = 'Error';
                 document.getElementById('current-month').textContent = 'Error';
                 document.getElementById('previous-month').textContent = 'Error';

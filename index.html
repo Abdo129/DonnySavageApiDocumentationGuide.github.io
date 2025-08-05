@@ -1806,10 +1806,10 @@ curl.exe -X POST "http://bot.api.donnysavagebot.publicvm.com/api/verify-member" 
                     setInterval(updateUptime, 1000);
                     
                     // Update month names and percentages
-                    document.getElementById('current-month').textContent = `${data.currentMonth.uptimePercentage}%`;
+                    document.getElementById('current-month').textContent = `${data.currentMonth.uptimePercentage}`;
                     document.getElementById('current-month-label').textContent = data.currentMonth.name;
                     
-                    document.getElementById('previous-month').textContent = `${data.previousMonth.uptimePercentage}%`;
+                    document.getElementById('previous-month').textContent = `${data.previousMonth.uptimePercentage}`;
                     document.getElementById('previous-month-label').textContent = data.previousMonth.name;
                     
                     // Hide error if previously shown
